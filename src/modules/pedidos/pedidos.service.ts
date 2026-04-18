@@ -22,39 +22,39 @@ export class PedidosService {
 
   async create(dto: CreatePedidoDto) {
     let pedido = await this.pedidoRepo.findOne({
-      where: { codigoPedido: dto.CodigoPedido },
+      where: { codigoPedido: dto.codigoPedido },
       relations: ['exames'],
     });
 
     if (!pedido) {
       pedido = this.pedidoRepo.create({
-        codigoPedido: dto.CodigoPedido,
-        nomePaciente: dto.NomePaciente,
-        dataNascimento: dto.DataNascimento,
-        sexo: dto.Sexo,
-        codUnidade: dto.CodUnidade,
+        codigoPedido: dto.codigoPedido,
+        nomePaciente: dto.nomePaciente,
+        dataNascimento: dto.dataNascimento,
+        sexo: dto.sexo,
+        codUnidade: dto.codUnidade,
         integrado: false,
       });
 
       pedido = await this.pedidoRepo.save(pedido);
     }
 
-    for (const exameDto of dto.Exames) {
+    for (const exameDto of dto.exams) {
       const existe = await this.pedidoExameRepo
         .createQueryBuilder('pedidoExame')
         .leftJoin('pedidoExame.pedido', 'pedido')
         .where('pedido.id = :pedidoId', { pedidoId: pedido.id })
         .andWhere('pedidoExame.accessionNumber = :accessionNumber', {
-          accessionNumber: exameDto.AccessionNumber,
+          accessionNumber: exameDto.accessionNumber,
         })
         .getOne();
 
       if (!existe) {
         const novoExamePedido = this.pedidoExameRepo.create({
-          codigoItemPedido: exameDto.CodigoItemPedido,
-          accessionNumber: exameDto.AccessionNumber,
-          modalidade: exameDto.Modalidade,
-          nomeProcedimento: exameDto.NomeProcedimento,
+          codigoItemPedido: exameDto.codigoItemPedido,
+          accessionNumber: exameDto.accessionNumber,
+          modalidade: exameDto.modalidade,
+          nomeProcedimento: exameDto.nomeProcedimento,
           pedido,
         });
 
@@ -64,9 +64,9 @@ export class PedidosService {
 
     let integrado = false;
 
-    for (const exameDto of dto.Exames) {
+    for (const exameDto of dto.exams) {
       const exameExistente = await this.exameRepo.findOne({
-        where: { accessionNumber: exameDto.AccessionNumber },
+        where: { accessionNumber: exameDto.accessionNumber },
       });
 
       if (exameExistente) {
