@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { PedidosService } from './pedidos.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 
@@ -9,5 +9,10 @@ export class PedidosController {
   @Post()
   create(@Body() dto: CreatePedidoDto) {
     return this.pedidosService.create(dto);
+  }
+
+  @Get(':codigoPedido')
+  findOne(@Param('codigoPedido') codigoPedido: string) {
+    return this.pedidosService.findOneByCodigo(Number(codigoPedido));
   }
 }

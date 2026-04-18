@@ -37,17 +37,25 @@ export class PedidosService {
       });
 
       pedido = await this.pedidoRepo.save(pedido);
+    } else {
+      pedido.nomePaciente = dto.nomePaciente;
+      pedido.dataNascimento = dto.dataNascimento;
+      pedido.sexo = dto.sexo;
+      pedido.codUnidade = dto.codUnidade;
+
+      pedido = await this.pedidoRepo.save(pedido);
     }
 
     for (const exameDto of dto.exams) {
-      const existe = await this.pedidoExameRepo
-        .createQueryBuilder('pedidoExame')
-        .leftJoin('pedidoExame.pedido', 'pedido')
-        .where('pedido.id = :pedidoId', { pedidoId: pedido.id })
-        .andWhere('pedidoExame.accessionNumber = :accessionNumber', {
+      const existe = await this.pedidoExameRepo.findOne({
+        where: {
           accessionNumber: exameDto.accessionNumber,
-        })
-        .getOne();
+          pedido: {
+            id: pedido.id,
+          },
+        },
+        relations: ['pedido'],
+      });
 
       if (!existe) {
         const novoExamePedido = this.pedidoExameRepo.create({
@@ -62,7 +70,7 @@ export class PedidosService {
       }
     }
 
-    let integrado = false;
+    let integrado = pedido.integrado;
 
     for (const exameDto of dto.exams) {
       const exameExistente = await this.exameRepo.findOne({
@@ -79,7 +87,14 @@ export class PedidosService {
     await this.pedidoRepo.save(pedido);
 
     return this.pedidoRepo.findOne({
-      where: { id: pedido.id },
+      where: { codigoPedido: dto.codigoPedido },
+      relations: ['exames'],
+    });
+  }
+
+  async findOneByCodigo(codigoPedido: number) {
+    return this.pedidoRepo.findOne({
+      where: { codigoPedido },
       relations: ['exames'],
     });
   }
